@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!-- Jquery is included here and available for use -->
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <!-- some basic styles for game setup -->
+    <style>
+      .game {
+        height: 500px;
+        width: 500px;
+        border: 1px solid black;
+        margin-bottom: 10px;
+        display: table;
+      }
+      .row {
+        display: table-row;
+      }
+      .game-space {
+        border: 1px dotted gray;
+        width: 50px;
+        height: 50px;
+        display: table-cell;
+      }
+      .ruby {
+        background-image: url(ruby.png);
+        background-repeat: no-repeat;
+        background-size: 40px 25px;
+        background-position: 4px 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="game"></div>
+  </body>
+</html>
+
+<script>
+
+
+var Utils = {    
+    
+    KEY_LEFT: 37,
+    KEY_UP: 38,
+    KEY_RIGHT: 39,
+    KEY_DOWN: 40,
+    
+    randomInt: function(min, max){
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+};        
+        
+    
+    
+var Ruby = {
+    
+    row: 0,
+    col: 0,
+    
+    init: function(){
+        this.moveTo( 
+            Utils.randomInt(0, 9), 
+            Utils.randomInt(0, 9)
+        );
+    },
+    
+    move: function(direction){
+        var row = Ruby.row,
+            col = Ruby.col;
+        
+        switch(direction){
+        
+            case Utils.KEY_LEFT:
+                col =  ( col != 0) ? col-1 :  col;
+                break;
+            
+            case Utils.KEY_RIGHT:
+                col = ( col != 9) ? col + 1:  col;
+                break;
+            
+            case Utils.KEY_UP:
+                row = ( row != 0) ? row - 1 : row;
+                break;
+            
+            case Utils.KEY_DOWN:
+                row = ( row != 9 ) ? row + 1: row;
+                break;
+        }  
+        
+        if(row != Python.row || col != Python.col){            
+            this.moveTo(row, col);   
+        }else{
+            this.randomMove();
+        }
+        
+    },
+    
+    moveTo: function(row, col){                     
+        $(["#",this.row, this.col].join("")).removeClass("ruby");        
+        this.row = row;
+        this.col = col;
+        $(["#",this.row, this.col].join("")).addClass("ruby");
+    },
+    
+    randomMove: function(){
+        var moves = [Utils.KEY_UP, Utils.KEY_DOWN, Utils.KEY_RIGHT, Utils.KEY_LEFT];
+        this.move(moves[Utils.randomInt(0, 3)]);
+    }
+    
+};    
+    
+//Step 3
+var Python = {
+    
+    row: 0,
+    
+    col: 0,
+    
+    img: "python.png",
+    
+    html: "<img src='python.png' height=45 width=45>",
+    
+    _counter: 0,
+    
+    init: function(){
+        this.moveTo(this.row, this.col);
+    },
+    
+    move: function(direction){
+        var row = this.row,
+            col = this.col;
+        
+        switch(direction){
+        
+            case Utils.KEY_LEFT:
+                col =  ( col != 0) ? col-1 :  col;
+                break;
+            
+            case Utils.KEY_RIGHT:
+                col = ( col != 9) ? col + 1:  col;
+                break;
+            
+            case Utils.KEY_UP:
+                row = ( row != 0) ? row - 1 : row;
+                break;
+            
+            case Utils.KEY_DOWN:
+                row = ( row != 9 ) ? row + 1: row;
+                break;
+        }
+        
+        if(row != this.row || col != this.col){            
+            this.moveTo(row, col);   
+            this._counter++;
+        }
+        
+    },        
+        
+    moveTo: function(row, col){                     
+        $(["#",this.row, this.col].join("")).html("");        
+        this.row = row;
+        this.col = col;
+        $(["#",this.row, this.col].join("")).html(this.html);         
+    }    
+};
+    
+var Game = {
+    
+    init: function(){        
+        
+        this.render();        
+        this._registerEvents();
+        
+        Python.init();
+        Ruby.init();
+    },                
+    
+    gotRuby: function(){
+        return (Python.row == Ruby.row && Python.col == Ruby.col);
+    },
+    
+    move: function(direction){
+         Python.move(direction);
+         if(this.gotRuby()){
+            setTimeout(function(){
+                alert(["Got the Ruby in ", Python._counter, " moves!"].join(""));
+            }, 200);     
+         }else{
+            Ruby.randomMove();
+         }
+    },
+    
+    render: function() {
+        var html = "";
+        for(var i=0; i<10; i++) {
+            html += "<div class='row'>";
+            for(var j=0; j<10; j++) {
+                html += "<div class='game-space' id="+i+""+j+">";                
+                html += "</div>";
+            }
+            html += "</div>";
+        } 
+        $('.game').html(html);
+    },
+    
+    _registerEvents: function(){        
+        $(document).keydown(function(evt){
+            switch(evt.which){
+                case Utils.KEY_UP:        
+                case Utils.KEY_DOWN:
+                case Utils.KEY_LEFT:
+                case Utils.KEY_RIGHT:
+                    Game.move(evt.which);            
+                    evt.stopPropagation();
+                    break;       
+            }    
+        });
+    }
+};
+                            
+$(document).ready(function(){
+    Game.init();
+});
+    
+</script>
